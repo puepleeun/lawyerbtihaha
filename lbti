@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>LBTI · 律师行为类型测试</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --gold: #d4a843;
+      --gold-light: #f0c857;
+      --dark: #0d0d1a;
+      --dark2: #13132a;
+      --dark3: #1a1a35;
+      --text: #ffffff;
+      --text-dim: rgba(255,255,255,0.6);
+      --text-faint: rgba(255,255,255,0.3);
+      --border: rgba(255,255,255,0.1);
+      --radius: 18px;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      position: fixed;
+      inset: 0;
+      inset: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ═══════════════════════════════
+       INTRO SCREEN
+    ═══════════════════════════════ */
+    #s-intro {
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,168,67,0.15) 0%, transparent 70%),
+                  linear-gradient(180deg, #0d0d1a 0%, #13132a 100%);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 28px 50px;
+    }
+
+    .intro-badge {
+      display: inline-block;
+      border: 1px solid rgba(212,168,67,0.45);
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 3px;
+      padding: 5px 14px;
+      border-radius: 30px;
+      margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+
+    .intro-logo {
+      font-size: 86px;
+      font-weight: 900;
+      letter-spacing: -4px;
+      line-height: 0.95;
+      background: linear-gradient(135deg, #ffffff 0%, var(--gold-light) 60%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .intro-full {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .intro-tagline {
+      font-size: 17px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.88);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .intro-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.8;
+      margin-bottom: 36px;
+      max-width: 300px;
+    }
+
+    .intro-stats {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 44px;
+    }
+    .stat-pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 30px;
+      padding: 7px 14px;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: #0d0d1a;
+      border: none;
+      padding: 17px 64px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 8px 32px rgba(212,168,67,0.35);
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+    .btn-start:active { transform: scale(0.97); box-shadow: 0 4px 16px rgba(212,168,67,0.2); }
+
+    .intro-note {
+      margin-top: 22px;
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    /* ═══════════════════════════════
+       QUIZ SCREEN
+    ═══════════════════════════════ */
+    #s-quiz {
+      background: linear-gradient(180deg, #0d0d1a 0%, #13132a 100%);
+    }
+
+    .quiz-top {
+      padding: 52px 24px 20px;
+      flex-shrink: 0;
+    }
+
+    .quiz-progress-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .quiz-step {
+      font-size: 11px;
+      color: var(--text-faint);
+      letter-spacing: 1px;
+    }
+    .quiz-count {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 700;
+    }
+    .progress-track {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 2px;
+      transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+      width: 0%;
+    }
+
+    .quiz-body {
+      flex: 1;
+      padding: 30px 24px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .q-wrap {
+      flex: 1;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .q-wrap.out-left  { opacity: 0; transform: translateX(-28px); }
+    .q-wrap.out-right { opacity: 0; transform: translateX(28px); }
+
+    .q-num {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .q-text {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.55;
+      color: #fff;
+      margin-bottom: 34px;
+    }
+
+    .opts {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .opt {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+      transition: all 0.2s ease;
+      width: 100%;
+      text-align: left;
+    }
+    .opt:active { transform: scale(0.99); }
+
+    .opt.selected {
+      background: rgba(212,168,67,0.12);
+      border-color: var(--gold);
+    }
+    .opt.dimmed {
+      opacity: 0.35;
+    }
+
+    .opt-abc {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      transition: all 0.2s;
+      letter-spacing: 0;
+    }
+    .opt.selected .opt-abc {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #0d0d1a;
+    }
+
+    .opt-text {
+      flex: 1;
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.6;
+      padding-top: 4px;
+    }
+    .opt.selected .opt-text {
+      color: #fff;
+    }
+
+    /* ═══════════════════════════════
+       RESULT SCREEN
+    ═══════════════════════════════ */
+    #s-result {
+      background: #0d0d1a;
+    }
+
+    .res-hero {
+      position: relative;
+      padding: 64px 28px 36px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .res-glow {
+      position: absolute;
+      top: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.18;
+      transition: background 0.5s;
+    }
+
+    .res-eyebrow {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .res-code {
+      font-size: 82px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 12px;
+      position: relative;
+      transition: color 0.4s;
+    }
+
+    .res-name {
+      font-size: 19px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .res-score-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 11px;
+      color: var(--text-faint);
+      position: relative;
+    }
+
+    .res-body {
+      padding: 0 20px 60px;
+    }
+
+    .res-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 22px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .res-card-top {
+      height: 3px;
+      width: 100%;
+      transition: background 0.4s;
+    }
+    .res-card-inner {
+      padding: 24px 22px;
+    }
+
+    .res-desc {
+      font-size: 14.5px;
+      line-height: 1.95;
+      color: rgba(255,255,255,0.8);
+      white-space: pre-line;
+    }
+
+    .res-meta {
+      margin-top: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .res-meta-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .res-meta-key {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--gold);
+      white-space: nowrap;
+      padding-top: 2px;
+      min-width: 56px;
+    }
+    .res-meta-val {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+    }
+
+    .res-share {
+      background: rgba(212,168,67,0.07);
+      border: 1px solid rgba(212,168,67,0.22);
+      border-radius: 20px;
+      padding: 22px 20px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .res-share-icon { font-size: 26px; margin-bottom: 10px; }
+    .res-share-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.75;
+    }
+    .res-share-em {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* WeChat share button */
+    .btn-wechat-share {
+      display: block;
+      width: 100%;
+      background: linear-gradient(135deg, #07c160, #06ad56);
+      border: none;
+      color: #fff;
+      padding: 15px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+      transition: opacity 0.2s;
+    }
+    .btn-wechat-share:active { opacity: 0.85; }
+
+    .btn-restart {
+      display: block;
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5);
+      padding: 15px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+    .btn-restart:active { background: rgba(255,255,255,0.1); }
+
+    .res-footer {
+      text-align: center;
+      padding: 16px 0 0;
+      font-size: 10px;
+      color: var(--text-faint);
+      letter-spacing: 1px;
+    }
+
+    /* ── Loading flash ── */
+    .flash-overlay {
+      position: fixed;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      transition: opacity 0.1s;
+    }
+    .flash-overlay.on { opacity: 0.12; }
+  </style>
+</head>
+<body>
+
+<!-- flash feedback -->
+<div class="flash-overlay" id="flash"></div>
+
+<!-- ══════ INTRO ══════ -->
+<div id="s-intro" class="screen active">
+  <div class="intro-badge">LBTI™ · 律师专版</div>
+  <div class="intro-logo">LBTI</div>
+  <div class="intro-full">Legal Behavioral Type Indicator</div>
+  <div class="intro-tagline">比 SBTI 更懂你<br>比当事人更了解你的律师灵魂</div>
+  <div class="intro-sub">
+    不评判，不安慰。<br>只是把你看个透。
+  </div>
+  <div class="intro-stats">
+    <span class="stat-pill">15 题</span>
+    <span class="stat-pill">约 3 分钟</span>
+    <span class="stat-pill">8 种类型</span>
+  </div>
+  <button class="btn-start" onclick="startQuiz()">开始测试</button>
+  <div class="intro-note">请根据真实状态作答 · 结果仅供娱乐</div>
+</div>
+
+<!-- ══════ QUIZ ══════ -->
+<div id="s-quiz" class="screen">
+  <div class="quiz-top">
+    <div class="quiz-progress-row">
+      <span class="quiz-step">LBTI™</span>
+      <span class="quiz-count" id="q-count">1 / 15</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-bar" id="prog-bar"></div>
+    </div>
+  </div>
+  <div class="quiz-body">
+    <div class="q-wrap" id="q-wrap">
+      <div class="q-num" id="q-num">Q.01</div>
+      <div class="q-text" id="q-text"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ RESULT ══════ -->
+<div id="s-result" class="screen">
+  <div class="res-hero">
+    <div class="res-glow" id="res-glow"></div>
+    <div class="res-eyebrow">你的律师类型</div>
+    <div class="res-code" id="res-code"></div>
+    <div class="res-name" id="res-name"></div>
+    <div class="res-score-tag" id="res-score-tag"></div>
+  </div>
+  <div class="res-body">
+    <div class="res-card" id="res-card">
+      <div class="res-card-top" id="res-card-top"></div>
+      <div class="res-card-inner">
+        <div class="res-desc" id="res-desc"></div>
+        <div class="res-meta" id="res-meta"></div>
+      </div>
+    </div>
+    <div class="res-share">
+      <div class="res-share-icon">📸</div>
+      <div class="res-share-text">
+        <span class="res-share-em">长按截图</span>，发给最近一起熬夜改合同的人<br>
+        看看 TA 测出来是什么
+      </div>
+    </div>
+    <button class="btn-wechat-share" onclick="wechatShare()">📤 分享给同事 · 看 TA 是哪种律师</button>
+    <button class="btn-restart" onclick="restartQuiz()">重新测一次</button>
+    <div class="res-footer">LBTI™ · 仅供娱乐 · 如有雷同纯属必然</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+
+// fwd: true → A=1,B=2,C=3  |  fwd: false → A=3,B=2,C=1
+const QUESTIONS = [
+  {
+    q: "收到新案件委托，你的第一反应是什么？",
+    opts: ["先看看能不能推掉", "先看看案件本身有没有意思、有没有胜算", "先在脑子里估算一下这个案子大概能计多少小时"],
+    fwd: true
+  },
+  {
+    q: "周六上午十点，客户发来消息：「律师，有个紧急的事想聊一下」，你：",
+    opts: ["回：好的，明天工作日联系", "回：好的，稍后电话（内心稍微皱了一下眉）", "直接打过去"],
+    fwd: true
+  },
+  {
+    q: "你认为一份合同「写完了」意味着：",
+    opts: ["意味着写完了", "意味着你看了一遍", "意味着逐字逐句过了至少三遍，并且跟对面确认过一遍"],
+    fwd: true
+  },
+  {
+    q: "法院通知开庭日期，你的内心活动是：",
+    opts: ["又要开庭，想想就累", "正常，准备准备就好了", "终于！"],
+    fwd: true
+  },
+  {
+    q: "你最近一次凌晨 12 点后还在工作，是：",
+    opts: ["很久以前了，或者已经不记得了", "上周", "昨晚（或者三天内）"],
+    fwd: true
+  },
+  {
+    q: "你觉得做律师最大的成就感来自：",
+    opts: ["成就感？什么成就感……", "拿到律师费的那一刻", "帮客户解决了一个真实的问题，或者赢了一个该赢的案子"],
+    fwd: true
+  },
+  {
+    q: "对方律师在庭上突然提出了一个你没预料到的论点，你：",
+    opts: ["有点慌，说实话", "稳住了，但心里打鼓", "反而更清醒，脑子转得更快了"],
+    fwd: true
+  },
+  {
+    q: "你平时对案件结果的态度是：",
+    opts: ["赢多少算多少，我尽力就好", "每个案子我都想赢，但有时候现实不允许", "我会在接案前就做筛选，只接有把握或有意义的"],
+    fwd: true
+  },
+  {
+    q: "打开手机，你现在有多少条还没回的客户消息：",
+    opts: ["0 条，全部已回", "几条，但都不急", "不知道，我不太敢看"],
+    fwd: true
+  },
+  {
+    q: "你有没有认真想过自己未来 3—5 年的职业方向？",
+    opts: ["不只想过，还列过规划，也在按规划走", "有模糊的想法，但没有认真梳理过", "想的更多是「五年后还在不在这行」"],
+    fwd: true
+  },
+  {
+    q: "你对律师这个职业的感情，用一句话形容是：",
+    opts: ["爱恨交织，但我依然选它", "就这样吧，算是凑合", "当初要是没来这行就好了"],
+    fwd: false
+  },
+  {
+    q: "面对一份 300 页的合同或尽职调查报告，你：",
+    opts: ["分配给团队，但我会亲自过每一个关键细节", "我和助理各分一部分，我盯重点", "挑框架和关键条款，太细的部分信任助理判断"],
+    fwd: false
+  },
+  {
+    q: "你对自己法律分析能力的评价是：",
+    opts: ["很强，这是我最自信的部分", "还行，和同行比差不多", "我更靠经验和直觉，不太喜欢抠理论"],
+    fwd: false
+  },
+  {
+    q: "你主动开发客户（BD）的频率：",
+    opts: ["经常，这是我工作的重要组成部分", "偶尔，有机会就做", "基本没有，不擅长，也不太想做"],
+    fwd: false
+  },
+  {
+    q: "如果明天突然离开律师行业，你最不舍得的是：",
+    opts: ["这套工作本身——庭审的感觉，或者啃复杂问题时的状态", "团队、同事、这些年建立起来的关系", "工资和社会认可度"],
+    fwd: false
+  }
+];
+
+const TYPES = [
+  {
+    min: 15, max: 22,
+    code: "DEAD",
+    name: "已阵亡律师",
+    color: "#7e9db5",
+    desc: `你还在。\n但你的灵魂不确定还在不在。\n\n你盯着屏幕改合同，改着改着忘了自己在改什么。客户发来消息你看了，「稍后回复」变成「等我明天再说」，变成「他会再催的」。你不是不在乎，你是已经在乎不动了。\n\n深夜你有时会在电脑前发呆，不是在思考什么，只是虚空。\n\n你来这行的理由，已经有点模糊了。某个大案子赢了的那一刹那，觉得还行——但那种感觉越来越短，间隔越来越长。\n\n你不是一个坏律师。你只是一个累透了的律师。\n\n有时候你觉得应该休一段时间。\n然后你打开邮箱，发现有十七封新邮件。`,
+    action: "发完邮件后盯着空白文档发呆两分钟",
+    word: "「好的，我看一下」（然后放着了）",
+    wish: "一个没有手机的周末"
+  },
+  {
+    min: 23, max: 27,
+    code: "POOR",
+    name: "入错了行",
+    color: "#b07d62",
+    desc: `你不是不努力，你是在努力地怀疑自己的选择。\n\n当初读法学的理由，你现在想想有点模糊——电视剧？父母觉得稳定？还是自己也没想清楚？反正你来了，你考过了，你入行了。\n\n但现在，你每天看着账单、看着案件、看着同事背条文的样子，感觉自己好像少了什么东西——一种热情？还是一种确信？\n\n你完成工作，不犯大错，对客户也算尽职。但在这一切做完之后，你偶尔会想：要是当初去做别的会怎样？\n\n你不是能力不够。\n你只是不确定这是不是你真正想要的。\n\n这个问题，律所的 KPI 表里没有答案。`,
+    action: "在法院门口等候时刷招聘软件",
+    word: "「算了，先干着吧」",
+    wish: "有一天能弄清楚自己到底想要什么"
+  },
+  {
+    min: 28, max: 32,
+    code: "MONK",
+    name: "苦行僧律师",
+    color: "#7986cb",
+    desc: `你没有抱怨，但不是因为你很快乐。\n你只是相信：熬过去就好了。\n\n别人加班到 11 点，你加班到凌晨 1 点。别人说这个案子做不完，你做完了。别人说这个客户太难缠，你还是接了，还给做完了。你用执行力解决了一切问题，但你很少问自己：我为什么要解决这些问题？\n\n你身边的人觉得你很靠谱。实习生和助理知道找你准没错。你经常被人说「你真的太拼了」，你点头，微笑，然后打开邮箱，发现有新邮件进来了。\n\n你不是没有情绪，只是把情绪放到很后面了——后面还有一份合同等着改。\n\n某种意义上，你是这行的脊梁。某种意义上，你也在把自己消耗得有点快。`,
+    action: "在最崩溃的时候，打开电脑继续干",
+    word: "「没事，我来」",
+    wish: "有一天可以不用这么拼（但说完自己也不信）"
+  },
+  {
+    min: 33, max: 36,
+    code: "CITE",
+    name: "引法狂魔",
+    color: "#4db6ac",
+    desc: `你不只是记得法条，你是用法条来思考的。\n\n别人说「这不合理」，你已经在脑子里出现了「根据《民法典》第 X 条第 X 款……」。朋友圈看到新闻，你会自动分析法律适用。和客户吃饭，你会用合同履行来类比烹饪方式，并为此感到一丝奇怪的满足。\n\n你是一个真正喜欢法律逻辑本身的律师——这行里，这种人其实不多。\n\n你有时会觉得其他律师「太功利了」，但你不说出来，你知道每个人有自己的活法。你也偶尔对自己的迂腐感到一丝无奈：有些客户只想要结果，不想听你讲法理。\n\n改变不了，这就是你。\n一个在法律世界里真正有信仰的人。`,
+    action: "聊天途中突然说「根据最高院去年的指导意见……」",
+    word: "「从法律逻辑来看……」",
+    wish: "所有人都尊重程序正义（包括你的客户）"
+  },
+  {
+    min: 37, max: 39,
+    code: "BILL",
+    name: "计费驱动型",
+    color: "#ffb74d",
+    desc: `时间就是金钱——这不是一句话，这是你的操作系统。\n\n你等电梯时会想：这算不算 billable。给客户发一封邮件前会算一下这封邮件值多少钱。手机里装着好几个计时工具。有人约你「随便吃个饭聊聊」，你听到「随便」两个字，心里已经在估算时间成本了。\n\n你不是唯利是图。你只是非常清醒地知道：你的价值是用时间体现的，而时间是有限的，所以你不能让时间随便溜走。\n\n你的账单很干净，记录很详细。客户偶尔抱怨费用，你翻出时间表，他们就没话说了。\n\n这种清醒有时让你很累——但你停不下来。停下来的每一分钟都是在亏钱。`,
+    action: "在手机上记录今天的 billable hours，晚上对账",
+    word: "「这个我需要计费时间的」",
+    wish: "每一个小时都能找到对应的计费依据"
+  },
+  {
+    min: 40, max: 42,
+    code: "FIRE",
+    name: "庭审战神",
+    color: "#ef6c6c",
+    desc: `你为庭审而生。\n\n写合同？可以，但提不起劲。开会讨论？无聊，但得去。但是——开庭。\n\n走进那个法庭，站在那个位置，你会变成另一个人。思维变清晰，语言变犀利，那种专注的状态是你在其他任何地方都找不到的。对方律师越强，你越亢奋。\n\n你喜欢对抗，不是因为你好斗，而是因为你相信这套对抗制度是检验真相最好的方式。\n\n有人开玩笑说你天生适合打架，你笑笑，没解释。\n他们不懂。\n\n你懂的是：在这个法庭上，没有什么是不能通过论点和证据改变的。`,
+    action: "庭前 5 分钟反而最平静，进去就是另一个状态",
+    word: "「再确认一遍证据链，我们还差一个环节」",
+    wish: "遇到一个足够复杂的大案子"
+  },
+  {
+    min: 43, max: 44,
+    code: "CTRL",
+    name: "掌控者",
+    color: "#66bb6a",
+    desc: `你不只是做律师，你在管理律师这件事本身。\n\n不是指管理别人（当然你也在管），而是说：这个过程的每一个细节——合同条款、时间节点、风险预案、备选方案——都在你的控制里。\n\n你不喜欢失控。你会提前两周准备截止日期前两天就该完成的工作。你的邮件有时回复得太快，让对方以为你时刻在等他们。\n\n你知道自己有时候有点「累人」——累到别人，也累到自己。但你停不下来，因为一看到有漏洞、有混乱、有没跟进到的细节，你就会不舒服。\n\n在别人眼里，你是那种「有什么事找他/她准没错」的律师。\n在你自己眼里，你只是在做正常应该做的事情，其他人不知道怎么了。`,
+    action: "建一个复杂的项目管理表，每天更新，顺便催所有人",
+    word: "「这个我来跟进一下」",
+    wish: "所有人都能按照你认为正确的方式工作"
+  },
+  {
+    min: 45, max: 45,
+    code: "BOSS",
+    name: "合伙人胚子",
+    color: "#d4a843",
+    desc: `你怎么会在这里看这种测试？\n\n你应该在开会，或者正好在开会间隙顺手刷了一下。\n\n你分不清自己什么时候在工作、什么时候不在，因为你一直都在——但你不觉得痛苦，这种状态对你来说本来就是动力来源的一部分。\n\n你有想法，你有执行力，你有人格魅力（尽管你可能没意识到），你还有一种奇怪的能力：让事情发生。\n\n不是所有事情都会成功，但你的故事里，成功的概率明显比别人高。你知道这一点，但很少说出来，因为还有更多的事情要做。\n\n这行给你的不只是职业。\n这行是你选择的战场。`,
+    action: "开会中途突然有了新思路，会后直接落地",
+    word: "「我们能不能从另一个角度想这件事」",
+    wish: "没有——你在做的，就是你想做的"
+  }
+];
+
+// Hidden type
+const TRAP_TYPE = {
+  code: "TRAP",
+  name: "被骗进来的律师",
+  color: "#ce93d8",
+  desc: `当初你以为律师是——正义化身、高薪光鲜、一口流利的法庭陈词、电视剧里那种。\n\n现在你坐在办公室里，周围是改不完的合同、催不完的当事人，以及一个对你说「你当初要好好想清楚」的自己。\n\n你不是没有能力，你只是当初没有想那么清楚。\n这不是你的错，是法学院宣传 PPT 的错。\n\n但你现在还在，所以也许你找到了一些在这里继续下去的理由——哪怕是一点点。\n\n你比自己想象的，要更有韧性。`,
+  action: "看到师兄师姐的发展路径时，暗暗和自己对比",
+  word: "「当时怎么就选了这行呢……」",
+  wish: "回到高考填志愿那一天"
+};
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let currentQ = 0;
+let answers  = [];  // stores option index (0,1,2)
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.scrollTop = 0;
+}
+
+function startQuiz() {
+  currentQ = 0;
+  answers  = [];
+  showScreen('s-quiz');
+  renderQuestion(0);
+}
+
+function restartQuiz() {
+  showScreen('s-intro');
+}
+
+/* ═══════════════════════════════════════════
+   QUIZ LOGIC
+═══════════════════════════════════════════ */
+function renderQuestion(idx) {
+  const q = QUESTIONS[idx];
+  const total = QUESTIONS.length;
+
+  // Progress
+  document.getElementById('q-count').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('prog-bar').style.width = `${((idx) / total) * 100}%`;
+  document.getElementById('q-num').textContent = `Q.${String(idx + 1).padStart(2, '0')}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  // Options
+  const labels = ['A', 'B', 'C'];
+  const optsEl = document.getElementById('opts');
+  optsEl.innerHTML = '';
+  q.opts.forEach((txt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-abc">${labels[i]}</span><span class="opt-text">${txt}</span>`;
+    btn.onclick = () => selectOption(i);
+    optsEl.appendChild(btn);
+  });
+}
+
+function selectOption(optIdx) {
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach((b, i) => {
+    b.classList.toggle('selected', i === optIdx);
+    b.classList.toggle('dimmed', i !== optIdx);
+    b.onclick = null; // prevent double tap
+  });
+
+  // flash feedback
+  const flash = document.getElementById('flash');
+  flash.classList.add('on');
+  setTimeout(() => flash.classList.remove('on'), 80);
+
+  answers[currentQ] = optIdx;
+
+  setTimeout(() => {
+    if (currentQ < QUESTIONS.length - 1) {
+      const wrap = document.getElementById('q-wrap');
+      wrap.classList.add('out-left');
+      setTimeout(() => {
+        currentQ++;
+        renderQuestion(currentQ);
+        wrap.classList.remove('out-left');
+        wrap.style.opacity = '0';
+        wrap.style.transform = 'translateX(20px)';
+        setTimeout(() => {
+          wrap.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+          wrap.style.opacity = '1';
+          wrap.style.transform = 'translateX(0)';
+        }, 20);
+      }, 220);
+    } else {
+      // Last question
+      setTimeout(showResult, 300);
+    }
+  }, 420);
+}
+
+/* ═══════════════════════════════════════════
+   SCORING & RESULT
+═══════════════════════════════════════════ */
+function calcScore() {
+  let total = 0;
+  QUESTIONS.forEach((q, i) => {
+    const opt = answers[i] ?? 1; // default mid
+    const pts = q.fwd ? (opt + 1) : (3 - opt);
+    total += pts;
+  });
+  return total;
+}
+
+function getType(score) {
+  // Hidden TRAP: Q11 = C (idx 2) AND Q1 = A (idx 0)
+  if (answers[10] === 2 && answers[0] === 0) return TRAP_TYPE;
+
+  for (const t of TYPES) {
+    if (score >= t.min && score <= t.max) return t;
+  }
+  return TYPES[TYPES.length - 1];
+}
+
+/* ═══════════════════════════════════════════
+   WECHAT SHARE
+═══════════════════════════════════════════ */
+function wechatShare() {
+  // In WeChat browser, trigger native share menu
+  if (navigator.share) {
+    navigator.share({
+      title: 'LBTI · 律师行为类型测试',
+      text: '15道题，测出你的律师人格类型。不评判，不安慰，只是把你看个透。',
+      url: window.location.href
+    }).catch(() => {});
+  } else {
+    // Fallback: hint user to use WeChat share
+    alert('点击右上角 ··· 分享给朋友或发到朋友圈');
+  }
+}
+
+function showResult() {
+  const score = calcScore();
+  const type  = getType(score);
+
+  document.getElementById('res-code').textContent = type.code;
+  document.getElementById('res-code').style.color = type.color;
+  document.getElementById('res-name').textContent = type.name;
+  document.getElementById('res-score-tag').textContent = `得分 ${score} · LBTI™`;
+  document.getElementById('res-glow').style.background = type.color;
+  document.getElementById('res-card-top').style.background = `linear-gradient(90deg, ${type.color}, transparent)`;
+  document.getElementById('res-desc').textContent = type.desc;
+
+  // Meta rows
+  const metaEl = document.getElementById('res-meta');
+  metaEl.innerHTML = `
+    <div class="res-meta-row">
+      <span class="res-meta-key">代表动作</span>
+      <span class="res-meta-val">${type.action}</span>
+    </div>
+    <div class="res-meta-row">
+      <span class="res-meta-key">常说的话</span>
+      <span class="res-meta-val">${type.word}</span>
+    </div>
+    <div class="res-meta-row">
+      <span class="res-meta-key">最大心愿</span>
+      <span class="res-meta-val">${type.wish}</span>
+    </div>
+  `;
+
+  // Final progress fill
+  document.getElementById('prog-bar').style.width = '100%';
+
+  showScreen('s-result');
+}
+</script>
+</body>
+</html>
